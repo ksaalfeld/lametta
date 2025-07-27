@@ -1,0 +1,15 @@
+package require lametta
+
+proc ::assert {y x} {
+   set c [::lametta::lametta -format %#x -- $x]
+   if {$y != $c} {
+      error "returned $c instead of $y on test vector: $x"
+   }
+}
+
+# check the test vectors
+assert 0xee "abc"
+assert 0x30 "Hello world"
+assert 0xca "The quick brown fox jumps over the lazy dog"
+assert 0xff "The quick brown fox jumps over the lazy dog."
+assert 0xbe "The quick brown dog jumps over the lazy fox."
