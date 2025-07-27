@@ -8,3 +8,16 @@ Only requiring addition and table lookup makes it suitable for low-level applica
 
 The algorithm and this implementation are placed in public domain.
 It's free for use for any purpose but without any warranty.
+
+# Usage
+
+    package require lametta
+    
+    lametta::lametta -- "Hello world!"  ;# checksum value: 124
+
+The following options are available:
+
+    -file FILE    Compute checksum over contents of specified file
+    -seed SEED    Set a new seed value (default: 0xa5)
+    -format FMT   Use given format specifier on the result (default: %d)
+    --            End of options
