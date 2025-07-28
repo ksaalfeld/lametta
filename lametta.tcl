@@ -50,9 +50,11 @@ proc ::lametta::compute {x {seed 0xa5}} {
       0xff 0x46 0x76 0x62 0x6b 0x6c 0x42 0x61
    }
    set y $seed
-   for {set i 0} {$i < [string length $x]} {incr i} {
-      set c [scan [string index $x $i] %c]
-      set y [lindex $table [expr {0xff & ($y + $c)}]]
+   # binary scan: returned values are signed int8 and
+   # must be translated to unsigned via (x & 0xff) later.
+   binary scan $x c* data
+   foreach c $data {
+      set y [lindex $table [expr {0xff & ($y + (0xff & $c))}]]
    }
    return $y
 }
@@ -106,9 +108,10 @@ proc ::lametta::lametta {args} {
    if {![string match "%*" $fmt]} {
       error "bad format specifier: $fmt"
    }
+   set inputfile ${opts(-file)}
    # Compute checksum
    set y {}
-   if {${opts(-file)} eq ""} {
+   if {$inputfile eq ""} {
       set N [llength $args]
       if {$optsend >= $N} {
          error "missing string argument(s)"
@@ -123,7 +126,6 @@ proc ::lametta::lametta {args} {
       }
       set y [::lametta::compute $msg $seed]
    } else {
-      set inputfile ${opts(-file)}
       if {![file exists $inputfile]} {
          error "no such file: $inputfile"
       }
