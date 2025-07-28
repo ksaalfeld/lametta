@@ -1,3 +1,5 @@
+lappend auto_path .
+
 package require lametta
 
 proc ::assert {y x} {
@@ -13,3 +15,5 @@ assert 0x30 "Hello world"
 assert 0xca "The quick brown fox jumps over the lazy dog"
 assert 0xff "The quick brown fox jumps over the lazy dog."
 assert 0xbe "The quick brown dog jumps over the lazy fox."
+
+puts "done!"

@@ -52,9 +52,9 @@ proc ::lametta::compute {x {seed 0xa5}} {
    set y $seed
    # binary scan: returned values are signed int8 and
    # must be translated to unsigned via (x & 0xff) later.
-   binary scan $x c* data
+   binary scan $x cu* data
    foreach c $data {
-      set y [lindex $table [expr {0xff & ($y + (0xff & $c))}]]
+      set y [lindex $table [expr {0xff & ($y + $c)}]]
    }
    return $y
 }
