@@ -5,6 +5,12 @@ package require Tcl 8.6
 
 
 namespace eval ::lametta {
+   # If file is larger than this threshold it is processed in multiple blocks.
+   # Otherwise it's read and processed as a single chunk of data.
+   variable FILE_THRES [expr {1024 * 1024}]
+   # File block size 
+   variable BLOCK_SIZE [expr {64 * 1024}]
+   
    namespace export lametta
    namespace ensemble create
 }
@@ -129,12 +135,29 @@ proc ::lametta::lametta {args} {
       if {![file exists $inputfile]} {
          error "no such file: $inputfile"
       }
-      set h [::open $inputfile "rb"]
-      try {
-         fconfigure $h -encoding binary -translation binary -eofchar {}
-         set y [::lametta::compute [::read $h] $seed]
-      } finally {
-         ::close $h
+      # If file size is zero the seed is the result
+      set y $seed
+      set size [file size $inputfile]
+      if {$size > 0} {
+         set h [::open $inputfile "rb"]
+         try {
+            fconfigure $h -encoding binary -translation binary -eofchar {}
+            # If file size is too big prefer processing in smaller chunks
+            variable FILE_THRES
+            if {$size > $FILE_THRES} {
+               variable BLOCK_SIZE
+               while {$size > 0} {
+                  set page [expr {$size >= $BLOCK_SIZE ? $BLOCK_SIZE : $size}]
+                  set y [::lametta::compute [::read $h $page] $y]
+                  incr size -$page
+               }
+            } else {
+               # Process everything in one big block
+               set y [::lametta::compute [::read $h] $seed]
+            }
+         } finally {
+            ::close $h
+         }
       }
    }
    return [format $fmt $y]
