@@ -55,9 +55,10 @@ proc ::lametta::compute {x {seed 0xa5}} {
       0x5c 0x18 0x4d 0xca 0x44 0xc2 0x65 0x35
       0xff 0x46 0x76 0x62 0x6b 0x6c 0x42 0x61
    }
+   if {$seed > 0xff} {
+      error "Bad seed value"
+   }
    set y $seed
-   # binary scan: returned values are signed int8 and
-   # must be translated to unsigned via (x & 0xff) later.
    binary scan $x cu* data
    foreach c $data {
       set y [lindex $table [expr {0xff & ($y + $c)}]]
@@ -164,4 +165,29 @@ proc ::lametta::lametta {args} {
 }
 
 
-package provide lametta 1.0.0
+# Try to load (platform specific) compiled librarye:
+# If successful this shared library replaces ::lametta::compute and makes call to provides the package.
+# Otherwise if that fails we use (slower) but working fallback we already have available.
+
+proc ::lametta::init {} {
+   set fallback 1
+   set ext [info sharedlibextension]
+   if {$ext ne ""} {
+      set lib [file join [file dirname [file normalize [info script]]] "lametta$ext"]
+      if {[file exists $lib]} {
+         if {![catch {load $lib} err]} {
+            set fallback 0
+         }
+      }
+   }
+   # If loading platform specific extension fails
+   # we rely on the fallback implementation.
+   if {$fallback != 0} {
+      package provide lametta 1.0.0
+   }
+}
+
+::lametta::init
+rename ::lametta::init {}
+
+#package provide lametta 1.0.0
