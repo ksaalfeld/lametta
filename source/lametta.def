@@ -1,0 +1,3 @@
+LIBRARY lametta.dll
+EXPORTS
+    Lametta_Init @ 1
